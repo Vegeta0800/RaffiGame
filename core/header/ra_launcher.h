@@ -10,11 +10,10 @@
 enum class LauncherState
 {
 	LOGGING = 0,
-	PENDING = 1,
+	IN_LOBBY = 1,
 	IN_ROOM = 2,
-	HOST_ROOM = 3,
-	CLOSING = 4,
-	CLOSED = 5
+	CLOSING = 3,
+	CLOSED = 4
 };
 
 //Launcher class
@@ -34,21 +33,32 @@ public:
 	void Close();
 	
 
-	//Set active message
+	//Set active message to be send over network
 	void SetActiveMessage(Message* message);
-	//Get active message
+	//Get active message to be send over network
 	Message* GetActiveMessage();
+
+	//Set current Launcher state
+	void SetLauncherState(LauncherState launcherState);
+	//Get current Launcher state
+	LauncherState GetLauncherState();
+
+	//Set the clients name
+	void SetName(std::string name);
+	//Get the clients name
+	std::string GetName();
 private:
 	//Start winsock and build connection to server
 	void StartNetcode();
 	//Instantiate window and show it
 	void InstantiateWindow();
 
-
 	bool newMessage = false;
-
+	
 	Message* activeLoad;
 
+	std::string name;
+	
 	Launcher_Netcode netcode;
 	Launcher_Window window;
 	LauncherState state;

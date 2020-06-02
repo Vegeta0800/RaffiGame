@@ -4,6 +4,7 @@
 #include <string>
 //INTERNAL INCLUDES
 #include "launcher/ra_launcher_netcode.h"
+#include "ra_launcher.h"
 #include "ra_utils.h"
 
 //Get winsock libary
@@ -39,13 +40,13 @@ bool Launcher_Netcode::SetupConnection()
 //Handle incoming messages and send replies
 bool Launcher_Netcode::HandleConnection()
 {
-	//Handle Messages	
-	if (this->currentBuffer[0] != '\0')
+	//If there is an active message
+	if (this->launcher->GetActiveMessage() != nullptr)
 	{
-		//Handle
-		printf(this->currentBuffer);
+		//Send the message
 		this->Send();
-		memset(currentBuffer, 0, DEFAULT_BUFFLENGTH);
+		//Reset
+		this->launcher->SetActiveMessage(nullptr);
 	}
 
 	return (this->state != NetState::CLOSING);
@@ -60,18 +61,6 @@ void Launcher_Netcode::CloseConnection()
 	this->receiveThread.join();
 	this->serverSocket = NULL;
 	this->state = NetState::CLOSED;
-}
-
-
-//Set message to be send
-void Launcher_Netcode::SetMessage(Message* mess)
-{
-	this->activeMessage = mess;
-}
-//Get message to be send
-Message* Launcher_Netcode::GetActiveMessage()
-{
-	return this->activeMessage;
 }
 
 
@@ -153,20 +142,19 @@ void Launcher_Netcode::Send()
 
 	int iResult = 0;
 
-	//Send messages by recasting the active message to correct type and send it
-	switch (this->activeMessage->type)
+	//Check message type of active message
+	switch (static_cast<MessageType>(this->launcher->GetActiveMessage()->type))
 	{
-	case 0: //Query
+	case MessageType::QUERY: //If Query:
 	{
-		Query* q2 = reinterpret_cast<Query*>(this->activeMessage);
-		iResult = send(this->serverSocket, reinterpret_cast<const char*>(q2), sizeof(Query), 0);
-		q2 = nullptr;
+		//Send active message as a reinterpreted query, that gets reinterpreted as an const char*, to the server
+		iResult = send(this->serverSocket, reinterpret_cast<const char*>(reinterpret_cast<Query*>(this->launcher->GetActiveMessage())), sizeof(Query), 0);
 		break;
 	}
 	}
 
 	//Afterwards delete the active message
-	delete this->activeMessage;
+	delete this->launcher->GetActiveMessage();
 
 	//Error handling
 	if (iResult == SOCKET_ERROR)
@@ -174,25 +162,34 @@ void Launcher_Netcode::Send()
 		this->NetStop("send failed: %d\n", WSAGetLastError());
 		return;
 	}
-
 }
 //Receive incoming messages from server
 void Launcher_Netcode::Receive()
 {
+	int iResult = 0;
+	char buffer[DEFAULT_BUFFLENGTH];
+	
 	//While Launcher is still running
 	while (this->state != NetState::CLOSING)
 	{
 		//Reset currentbuffer to null
-		memset(currentBuffer, 0, DEFAULT_BUFFLENGTH);
+		memset(buffer, 0, DEFAULT_BUFFLENGTH);
 		
 		//Receive message from server
-		int iResult = recv(this->serverSocket, this->currentBuffer, DEFAULT_BUFFLENGTH, 0);
+		iResult = recv(this->serverSocket, buffer, DEFAULT_BUFFLENGTH, 0);
 
 		//If succesful
 		if (iResult > 0)
 		{
-			//Handle message
-			printf(this->currentBuffer);
+			//Check message type
+			switch (static_cast<MessageType>(reinterpret_cast<Message*>(buffer)->type))
+			{
+			case MessageType::QUERYRESP: //If message is a query response
+			{
+				this->HandleLogin(reinterpret_cast<QueryResponse*>(buffer)); //Handle login with QueryResponse recast
+				break;
+			}
+			}
 		}
 		else
 		{
@@ -214,4 +211,19 @@ void Launcher_Netcode::NetStop(const char* errorMessage, int errorCode)
 	WSACleanup();
 	//Set state to closing
 	this->state = NetState::CLOSING;
+}
+
+
+//Handle Login message
+void Launcher_Netcode::HandleLogin(QueryResponse* resp)
+{
+	//If the query was succesful
+	if (resp->success)
+	{
+		this->launcher->SetLauncherState(LauncherState::IN_LOBBY);
+	}
+	else
+	{
+		printf("Failure!\n");
+	}
 }

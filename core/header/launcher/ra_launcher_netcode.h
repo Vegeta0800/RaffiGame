@@ -43,12 +43,6 @@ public:
 	void CloseConnection();
 
 
-	//Set message to be send
-	void SetMessage(Message* mess);
-	//Get message to be send
-	Message* GetActiveMessage();
-
-
 	//Public state
 	NetState state;
 private:
@@ -65,13 +59,13 @@ private:
 	//Teardown connection and show errorMessage/logMessage
 	void NetStop(const char* errorMessage, int errorCode);
 
-	
 
-	char currentBuffer[DEFAULT_BUFFLENGTH];
+	//Handle Login
+	void HandleLogin(QueryResponse* resp);
+	
 
 	std::thread receiveThread;
 	
 	SOCKET serverSocket;
 	Launcher* launcher;
-	Message* activeMessage;
 };

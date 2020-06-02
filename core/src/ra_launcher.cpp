@@ -4,7 +4,7 @@
 
 
 
-//PUBLIC FUNCTIONS:
+//PUBLIC FUNCTIONS: 
 //On construction, construct netcode and window
 Launcher::Launcher()
 {
@@ -24,19 +24,12 @@ Launcher::Launcher()
 void Launcher::Initialize()
 {
 	//Start netcode
-	//this->StartNetcode();
+	this->StartNetcode();
 	//Create and start window
 	this->InstantiateWindow();
 
 	//Start logging phase
 	this->state = LauncherState::LOGGING;
-
-	//Query* q = new Query();
-	//q->name = "Raffi";
-	//q->password = "Password";
-	//q->type = 0;
-
-	//this->netcode.SetMessage(q);
 }
 //Update netcode and window. Return true if everything was succesful
 bool Launcher::Update()
@@ -59,7 +52,7 @@ bool Launcher::Update()
 			//If fails, shutdown launcher.
 			printf("Launcher window couldnt be handled!\n");
 			this->state = LauncherState::CLOSING;
-			this->window.state = WindowState::CLOSED;
+			this->window.state = WindowState::CLOSING;
 		}
 	}
 	//If netcode isnt closed
@@ -96,16 +89,38 @@ void Launcher::Close()
 }
 
 
-
-//Set active message
+//Set active message to be send over network
 void Launcher::SetActiveMessage(Message* mess)
 {
 	this->activeLoad = mess;
 }
-//Get active message
+//Get active message to be send over network
 Message* Launcher::GetActiveMessage()
 {
 	return this->activeLoad;
+}
+
+//Set current Launcher state
+void Launcher::SetLauncherState(LauncherState launcherState)
+{
+	this->state = launcherState;
+	this->window.TriggerUpdate();
+}
+//Get current Launcher state
+LauncherState Launcher::GetLauncherState()
+{
+	return this->state;
+}
+
+//Set the clients name
+void Launcher::SetName(std::string name)
+{
+	this->name = name;
+}
+//Get the clients name
+std::string Launcher::GetName()
+{
+	return this->name;
 }
 
 
