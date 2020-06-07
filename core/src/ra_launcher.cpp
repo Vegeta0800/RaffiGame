@@ -11,8 +11,6 @@ Launcher::Launcher()
 	//Set connection between window and launcher
 	this->window.SetLauncher(this);
 	this->netcode.SetLauncher(this);
-	//Set connection between window and netcode
-
 
 	//Initialize other variables
 	this->activeLoad = nullptr;
@@ -89,6 +87,14 @@ void Launcher::Close()
 }
 
 
+//Spawn new physical message
+void Launcher::SpawnMessage(std::string text, uint8_t senderID)
+{
+	//Trigger event in window to create new message on screen
+	this->window.TriggerUpdateMessages(text, senderID);
+}
+
+
 //Set active message to be send over network
 void Launcher::SetActiveMessage(Message* mess)
 {
@@ -100,11 +106,12 @@ Message* Launcher::GetActiveMessage()
 	return this->activeLoad;
 }
 
-//Set current Launcher state
+//Set current Launcher state and trigger update in window
 void Launcher::SetLauncherState(LauncherState launcherState)
 {
 	this->state = launcherState;
-	this->window.TriggerUpdate();
+	//Trigger event in window to change window
+	this->window.TriggerUpdateWindow();
 }
 //Get current Launcher state
 LauncherState Launcher::GetLauncherState()
@@ -121,6 +128,23 @@ void Launcher::SetName(std::string name)
 std::string Launcher::GetName()
 {
 	return this->name;
+}
+
+//Set the name of the room the client is inside. If hosting, its the clients name, if not its the hosting clients name
+void Launcher::SetRoomName(std::string hostName)
+{
+	this->roomName = hostName.append("'s room");
+}
+//Get the name of the room the client is inside
+std::string Launcher::GetRoomName()
+{
+	return this->roomName;
+}
+
+//Return if client is hosting a room right now
+bool& Launcher::isHostingRoom()
+{
+	return this->hostingRoom;
 }
 
 

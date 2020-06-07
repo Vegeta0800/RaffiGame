@@ -151,6 +151,23 @@ void Launcher_Netcode::Send()
 		iResult = send(this->serverSocket, reinterpret_cast<const char*>(reinterpret_cast<Query*>(this->launcher->GetActiveMessage())), sizeof(Query), 0);
 		break;
 	}
+	case MessageType::CREATEROOM: //If Create Room message:
+	{
+		//Send active message as a reinterpreted const char*, to the server
+		iResult = send(this->serverSocket, reinterpret_cast<const char*>(this->launcher->GetActiveMessage()), sizeof(Message), 0);
+		break;
+	}
+	case MessageType::JOINROOM: //If join room message
+	{
+		//Send active message as a reinterpreted join room message, that gets reinterpreted as an const char*, to the server
+		iResult = send(this->serverSocket, reinterpret_cast<const char*>(reinterpret_cast<JoinRoomMessage*>(this->launcher->GetActiveMessage())), sizeof(JoinRoomMessage), 0);
+		break;
+	}
+	case MessageType::CHATMESS: //If chat message
+	{
+		//Send active message as a reinterpreted chat message, that gets reinterpreted as an const char*, to the server
+		iResult = send(this->serverSocket, reinterpret_cast<const char*>(reinterpret_cast<ChatMessage*>(this->launcher->GetActiveMessage())), sizeof(ChatMessage), 0);
+	}
 	}
 
 	//Afterwards delete the active message
@@ -189,6 +206,21 @@ void Launcher_Netcode::Receive()
 				this->HandleLogin(reinterpret_cast<QueryResponse*>(buffer)); //Handle login with QueryResponse recast
 				break;
 			}
+			case MessageType::CREATEROOMRESP: //If create room response
+			{
+				this->HandleCreateRoom(reinterpret_cast<CreateRoomResponse*>(buffer)); //Handle create room message with CreateRoomResponse recast
+				break;
+			}
+			case MessageType::JOINROOMRESP: //If join room response
+			{
+				this->HandleJoinRoom(reinterpret_cast<JoinRoomResponse*>(buffer));  //Handle join room message with JoinRoomResponse recast
+				break;
+			}
+			case MessageType::CHATMESS: //If chat message
+			{
+				this->HandleChatMessage(reinterpret_cast<ChatMessage*>(buffer));  //Handle chat message with ChatMessage recast
+				break;
+			}
 			}
 		}
 		else
@@ -220,10 +252,46 @@ void Launcher_Netcode::HandleLogin(QueryResponse* resp)
 	//If the query was succesful
 	if (resp->success)
 	{
+		//Go to lobby state
 		this->launcher->SetLauncherState(LauncherState::IN_LOBBY);
 	}
 	else
 	{
 		printf("Failure!\n");
 	}
+}
+//Handle Create Room
+void Launcher_Netcode::HandleCreateRoom(CreateRoomResponse* resp)
+{
+	//Set rooms name with hosts name
+	this->launcher->SetRoomName(resp->hostName);
+	
+	//Create lobby message and spawn it
+	std::string mess = resp->hostName;
+	mess.append(" created a room 1/2");
+	this->launcher->SpawnMessage(mess, resp->hostID);
+}
+//Handle Join Room
+void Launcher_Netcode::HandleJoinRoom(JoinRoomResponse* resp)
+{
+	//If joining was succesful
+	if (resp->success)
+	{
+		//Set state to in room
+		this->launcher->SetLauncherState(LauncherState::IN_ROOM);
+		//Set room name and is hosting to false
+		this->launcher->SetRoomName(resp->hostName);
+		this->launcher->isHostingRoom() = false;
+	}
+	else
+	{
+		//Failed
+		printf("Couldnt join room of: %s! \n", resp->hostName);
+	}
+}
+//Handle Chat message
+void Launcher_Netcode::HandleChatMessage(ChatMessage* chatMessage)
+{
+	//Spawn chat message inside room chat
+	this->launcher->SpawnMessage(chatMessage->chatMessage);
 }

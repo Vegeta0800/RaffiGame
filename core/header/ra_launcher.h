@@ -33,12 +33,16 @@ public:
 	void Close();
 	
 
+	//Spawn new physical message
+	void SpawnMessage(std::string text, uint8_t senderID = 255);
+
+
 	//Set active message to be send over network
 	void SetActiveMessage(Message* message);
 	//Get active message to be send over network
 	Message* GetActiveMessage();
 
-	//Set current Launcher state
+	//Set current Launcher state and trigger update in window
 	void SetLauncherState(LauncherState launcherState);
 	//Get current Launcher state
 	LauncherState GetLauncherState();
@@ -47,17 +51,26 @@ public:
 	void SetName(std::string name);
 	//Get the clients name
 	std::string GetName();
+
+	//Set the name of the room the client is inside. If hosting its the clients name, if not its the hosting clients name
+	void SetRoomName(std::string hostName);
+	//Get the name of the room the client is inside
+	std::string GetRoomName();
+
+	//Return if client is hosting a room right now
+	bool& isHostingRoom();
 private:
 	//Start winsock and build connection to server
 	void StartNetcode();
 	//Instantiate window and show it
 	void InstantiateWindow();
 
-	bool newMessage = false;
+	bool hostingRoom = false;
 	
-	Message* activeLoad;
+	Message* activeLoad = nullptr;
 
-	std::string name;
+	std::string name = "";
+	std::string roomName = "";
 	
 	Launcher_Netcode netcode;
 	Launcher_Window window;

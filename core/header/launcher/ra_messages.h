@@ -18,8 +18,8 @@ struct Message
 #pragma pack(push, 1)
 struct Query : public Message
 {
-	std::string name;
-	std::string password;
+	char name[16];
+	char password[16];
 };
 #pragma pack(pop)
 
@@ -28,6 +28,40 @@ struct Query : public Message
 struct QueryResponse : public Message
 {
 	bool success;
+};
+#pragma pack(pop)
+
+//Create room message response
+#pragma pack(push, 1)
+struct CreateRoomResponse : public Message
+{
+	char hostName[16];
+	uint8_t hostID;
+};
+#pragma pack(pop)
+
+//Join room message
+#pragma pack(push, 1)
+struct JoinRoomMessage : public Message
+{
+	uint8_t hostID;
+};
+#pragma pack(pop)
+
+//Join room message response
+#pragma pack(push, 1)
+struct JoinRoomResponse : public Message
+{
+	char hostName[16];
+	bool success;
+};
+#pragma pack(pop)
+
+//Chat message response
+#pragma pack(push, 1)
+struct ChatMessage : public Message
+{
+	char chatMessage[64];
 };
 #pragma pack(pop)
 
@@ -44,7 +78,8 @@ enum class MessageType
 	CREATEROOMRESP = 7,
 	JOINROOMRESP = 8,
 	LEAVEROOMRESP = 9,
-	READYRESP = 10
+	READYRESP = 10,
+	CHATMESS = 11
 };
 
 

@@ -67,4 +67,4 @@ Type* Type::instance = nullptr;
 #define GetVariableName(var) #var
 
 //Set string to a char array
-#define SET_STRING(x, y) { for (int i = 0; i < y.length(); i++) { x[i] = y[i]; }}
+#define SET_STRING(x, y, size) { for (int j = 0; j < size; j++) { x[j] = y[j]; }}

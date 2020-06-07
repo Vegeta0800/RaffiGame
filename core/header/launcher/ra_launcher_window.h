@@ -28,9 +28,10 @@ enum class WindowTypes
 
 struct MessageWindow
 {
-	HWND handle;
-	RECT rect;
-	uint8_t id;
+	HWND handle = NULL;
+	RECT rect = RECT();
+	uint8_t id = 255;
+	uint8_t clientID = 255;
 };
 struct Window
 {
@@ -42,16 +43,16 @@ struct Window
 #define LoginPassword_ID 2
 struct LoginWindow : public Window
 {
-	HWND name;
-	HWND password;
-	HWND button;
+	HWND name = NULL;
+	HWND password = NULL;
+	HWND button = NULL;
 };
 #define LobbyButton_ID 3
 struct LobbyWindow : public Window
 {
 	std::vector<MessageWindow> messages;
-	HWND lobby;
-	HWND button;
+	HWND lobby = NULL;
+	HWND button = NULL;
 };
 #define RoomReadyButton_ID 4
 #define RoomLeaveButton_ID 5
@@ -60,11 +61,11 @@ struct LobbyWindow : public Window
 struct RoomWindow : public Window
 {
 	std::vector<MessageWindow> messages;
-	HWND room;
-	HWND readyButton;
-	HWND leaveButton;
-	HWND chatButton;
-	HWND chatBox;
+	HWND room = NULL;
+	HWND readyButton = NULL;
+	HWND leaveButton = NULL;
+	HWND chatButton = NULL;
+	HWND chatBox = NULL;
 };
 
 
@@ -82,6 +83,48 @@ public:
 	bool HandleWindow();
 	//Close window
 	void CloseWindow();
+	//Trigger close event for main window
+	void Close();
+
+
+	//Create message based on what window is currently active
+	void CreateMessage();
+	//Trigger UpdateCurrentWindow to occur on next handle loop
+	void TriggerUpdateWindow();
+	//Trigger CreateMessage to occur on next handle loop
+	void TriggerUpdateMessages(std::string message, uint8_t id);
+
+
+	//Event triggered when Login button is clicked
+	void LoginButtonClick();
+	//Event triggered when CreateRoom button is clicked
+	void CreateRoomButtonClick();
+	//Event triggered when a client double clicks a room
+	void JoinRoomClick(uint8_t roomHostID);
+	//Event triggered when Send button is clicked
+	void SendButtonClick();
+
+	//Change window state 
+	void ChangeState(WindowState state);
+
+
+	//Get handle to main window
+	HWND GetHandle();
+	//Get pointer to current window
+	Window* GetCurrentWindow();
+
+
+	//Public state
+	WindowState state = WindowState::CLOSED;
+private:
+	//Create the window
+	void Create();
+
+
+	//Delete current window and create next window based on current launcher state
+	void UpdateCurrentWindow();
+	//Delete current active window
+	void DeleteCurrentWindow();
 
 
 	//Create Login Window screen with Name, Password textfields and Login button
@@ -91,54 +134,25 @@ public:
 	//Create Room Window screen with chat messages, ready button, chat box, chat button and leave button.
 	void CreateRoomWindow();
 
-	//Create message based on what window is currently active
-	void CreateMessage(std::string text);
+
 	//Create message for lobby
-	void CreateLobbyMessage(std::string text);
+	void CreateLobbyMessage(std::string text, uint8_t id);
 	//Create message for room
 	void CreateRoomMessage(std::string text);
 
-	//Trigger UpdateCurrentWindow to occur on next handle loop
-	void TriggerUpdate();
-	//Delete current window and create next window based on current launcher state
-	void UpdateCurrentWindow();
 
+	std::string currentMessage = "";
 
-	//Delete current active window
-	void DeleteCurrentWindow();
+	uint32_t width = 0;
+	uint32_t height = 0;
 
-
-	//Event triggered when Login button is clicked
-	void LoginButtonClick();
-	//Event triggered when CreateRoom button is clicked
-	void CreateRoomButtonClick();
-
-
-	//Change window state 
-	void ChangeState(WindowState state);
-	//Trigger close event for main window
-	void Close();
-
-
-	//Get handle to main window
-	HWND GetHandle();
-
-	//Public state
-	WindowState state;
-private:
-	//Create the window
-	void Create();
-
-
-
-	uint32_t width;
-	uint32_t height;
+	uint8_t currentMessageID = 255;
 	
 	bool close = false;
 	bool updateWindow = false;
 
-	Window* currentWindow;
+	Window* currentWindow = nullptr;
 
-	Launcher* launcher;
-	HWND handle;
+	Launcher* launcher = nullptr;
+	HWND handle = NULL;
 };

@@ -9,7 +9,7 @@
 
 //Defines needed for netcode
 #define DEFAULT_PORT 12307
-#define DEFAULT_BUFFLENGTH 65
+#define DEFAULT_BUFFLENGTH 128
 #define SERVER_IP "127.0.0.1"
 
 class Launcher;
@@ -44,7 +44,7 @@ public:
 
 
 	//Public state
-	NetState state;
+	NetState state = NetState::CLOSED;
 private:
 	//Start winsock
 	void StartWinsock();
@@ -62,10 +62,16 @@ private:
 
 	//Handle Login
 	void HandleLogin(QueryResponse* resp);
+	//Handle Create Room
+	void HandleCreateRoom(CreateRoomResponse* resp);
+	//Handle Join Room
+	void HandleJoinRoom(JoinRoomResponse* resp);
+	//Handle Chat message
+	void HandleChatMessage(ChatMessage* chatMessage);
 	
 
 	std::thread receiveThread;
 	
-	SOCKET serverSocket;
-	Launcher* launcher;
+	SOCKET serverSocket = NULL;
+	Launcher* launcher = nullptr;
 };
